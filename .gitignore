@@ -14,17 +14,3 @@ __pycache__/
 *.log
 .DS_Store
 Thumbs.db
-
-# Ignorar dados sensíveis ou pesados (se aplicável)
-*.pkl
-*.zip
-*.csv
-*.xlsx
-
-# Mas incluir os que forem necessários manualmente
-!dados/Dados_Preprocessados_Codificados.csv
-!dados/dados_normalizados.csv
-!dados/Dados_com_clusters.csv
-!modelos/mapeamento_legivel.json
-!modelos/modelo_kmeans.pkl
-!modelos/normalizador.pkl

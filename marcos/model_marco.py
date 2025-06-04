@@ -1,12 +1,14 @@
-# Importação de bibliotecas necessárias
+# Importação de bibliotecas necessáriasimport pandas as pd
 import numpy as np
+import matplotlib.pyplot as plt 
 import pandas as pd
-from sklearn.model_selection import train_test_split, cross_val_score
+from sklearn.model_selection import train_test_split
 from sklearn.decomposition import PCA
 from sklearn.ensemble import RandomForestRegressor
 from sklearn.preprocessing import StandardScaler
 from sklearn.metrics import mean_absolute_error, mean_squared_error, r2_score
-import matplotlib.pyplot as plt
+import joblib
+
 
 # Carregar o dataset
 df = pd.read_csv('dataset.csv')
@@ -28,9 +30,8 @@ scaler = StandardScaler()
 df[numerical_cols] = scaler.fit_transform(df[numerical_cols])
 
 # 4. Separar as features (X) e o alvo (y)
-# Aqui estamos a prever o número de ambulâncias por dia e anuais, por isso usamos a coluna 'VEICULO' como exemplo
-X = df.drop(columns=['VEICULO'])  # Remover a variável alvo
-y = df['VEICULO']  # Variável alvo, pode ser ajustado para o que pretende (e.g., número de ambulâncias)
+X = df.drop(columns=['PED_NUM_VEICULOS'])  # Remover a variável alvo
+y = df['PED_NUM_VEICULOS']  # Variável alvo
 
 # 5. Dividir os dados em treino e teste
 X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.2, random_state=42)
@@ -46,18 +47,7 @@ rf.fit(X_train_pca, y_train)
 
 # 8. Previsão e avaliação do modelo
 y_pred = rf.predict(X_test_pca)
-"""
-# Avaliação do desempenho
-mae = mean_absolute_error(y_test, y_pred)
-mse = mean_squared_error(y_test, y_pred)
-rmse = mean_squared_error(y_test, y_pred, squared=False)
-r2 = r2_score(y_test, y_pred)
 
-print(f"MAE: {mae}")
-print(f"MSE: {mse}")
-print(f"RMSE: {rmse}")
-print(f"R2: {r2}")
-"""
 # Avaliação do desempenho
 mae = mean_absolute_error(y_test, y_pred)
 mse = mean_squared_error(y_test, y_pred)
@@ -82,15 +72,8 @@ plt.ylabel("Importância")
 plt.show()
 
 # 10. Salvamento do modelo e do PCA
-import joblib
-
-# Salvar o modelo Random Forest
 joblib.dump(rf, 'random_forest_model.pkl')
-
-# Salvar o modelo PCA
 joblib.dump(pca, 'pca_model.pkl')
-
-# Salvar o scaler (caso precise de normalizar dados novos)
 joblib.dump(scaler, 'scaler.pkl')
 
 print("Modelos salvos com sucesso!")

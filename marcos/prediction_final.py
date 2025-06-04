@@ -25,12 +25,12 @@ def prever_ambulancias(ano, mes, dia_semana, hora_saida_num, minutos_saida, turn
                               
       
     # Calcular a mediana das variáveis relevantes para preencher os valores faltantes
-    duracao_minutos_mediana = dados_filtrados['DURACAO_MINUTOS'].median() if not dados_filtrados['DURACAO_MINUTOS'].empty else 0
-    ped_cod_servico_mediana = dados_filtrados['PED_COD_SERVICO'].median() if not dados_filtrados['PED_COD_SERVICO'].empty else 0
-    ped_num_veiculos = 0
-    ped_kilometros_mediana = dados_filtrados['PED_KILOMETROS'].median() if not dados_filtrados['PED_KILOMETROS'].empty else 0
-    ped_local_mediana = dados_filtrados['PED_LOCAL'].median() if not dados_filtrados['PED_LOCAL'].empty else 0
-    ped_num_bombeiros_mediana = dados_filtrados['PED_NUM_BOMBEIROS'].median() if not dados_filtrados['PED_NUM_BOMBEIROS'].empty else 0
+    duracao_minutos_mediana = dados_filtrados['DURACAO_MINUTOS'].mean() if not dados_filtrados['DURACAO_MINUTOS'].empty else 0
+    ped_cod_servico_mediana = dados_filtrados['PED_COD_SERVICO'].mean() if not dados_filtrados['PED_COD_SERVICO'].empty else 0
+    ped_num_veiculos_mediana = dados_filtrados['PED_NUM_VEICULOS'].mean() if not dados_filtrados['PED_KILOMETROS'].empty else 0
+    ped_kilometros_mediana = dados_filtrados['PED_KILOMETROS'].mean() if not dados_filtrados['PED_KILOMETROS'].empty else 0
+    ped_local_mediana = dados_filtrados['PED_LOCAL'].mean() if not dados_filtrados['PED_LOCAL'].empty else 0
+    ped_num_bombeiros_mediana = dados_filtrados['PED_NUM_BOMBEIROS'].mean() if not dados_filtrados['PED_NUM_BOMBEIROS'].empty else 0
     reserva_descricao_mediana = 0  # Preencher com valor padrão ou mediana
     reserva_destino_mediana = 0    # Preencher com valor padrão ou mediana
     reserva_posicao_mediana = 0    # Preencher com valor padrão ou mediana
@@ -45,7 +45,7 @@ def prever_ambulancias(ano, mes, dia_semana, hora_saida_num, minutos_saida, turn
         'TURNO': [turno],  # Valor fornecido pelo utilizador
         'DURACAO_MINUTOS': [duracao_minutos_mediana],  # Mediana calculada
         'PED_COD_SERVICO': [ped_cod_servico_mediana],  # Mediana calculada
-        'PED_NUM_VEICULOS': [ped_num_veiculos],  # Preenchido com valor padrão
+        'PED_NUM_VEICULOS': [ped_num_veiculos_mediana],  # Preenchido com valor padrão
         'PED_KILOMETROS': [ped_kilometros_mediana],  # Mediana calculada
         'PED_LOCAL': [ped_local_mediana],  # Mediana calculada
         'PED_NUM_BOMBEIROS': [ped_num_bombeiros_mediana],  # Mediana calculada
@@ -79,9 +79,13 @@ def prever_ambulancias(ano, mes, dia_semana, hora_saida_num, minutos_saida, turn
     dados_entrada_norm = dados_entrada.drop(columns=['PED_NUM_VEICULOS'])  
     
     # Aplicar PCA para reduzir a dimensionalidade
+    print("dados_entrada_norm")
+    print(dados_entrada_norm)
     dados_entrada_pca = pca_model.transform(dados_entrada_norm)
      
     # Fazer a previsão com o modelo Random Forest
+    print("dados_entrada_pca")
+    print(dados_entrada_pca)
     previsao = rf_model.predict(dados_entrada_pca)
     
     # Exibir o resultado da previsão

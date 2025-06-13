@@ -35,7 +35,7 @@ metodologico mas com comportamento de predição diferente
 Modelo=
 *best_rf_classifier_pipeline.pkl*
 
-# 5- script preditor, 
+# 5- script preditor 
 
 script preditor que solicita a entrada de dados temporais e prevê o numero de veiculos necessários para esse
 

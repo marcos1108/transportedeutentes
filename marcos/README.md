@@ -32,6 +32,8 @@ criado modelo classiificador (pipeline) e treinado (método fit) que faz prediç
 O modelo criado é um modelos ajustado dataset entregue, outro dataset outro contexto produzir o mesmo modelos
 metodologico mas com comportamento de predição diferente 
 
+Modelo= * best_rf_classifier_pipeline.pkl *
+
 # 5- script preditor, 
 
 script preditor que solicita a entrada de dados temporais e prevê o numero de veiculos necessários para esse

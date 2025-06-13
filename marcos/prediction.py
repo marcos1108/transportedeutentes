@@ -58,5 +58,5 @@ if feature_names is not None:
 
 # Prever
 y_pred = model.predict(data)
-print(f"Predição de NUM_VEICULOS_NECESSARIO: {y_pred[0]}")
+print(f"No período temporal indicado,\nPrevê-se ser necessário : {y_pred[0]} veículos")
 

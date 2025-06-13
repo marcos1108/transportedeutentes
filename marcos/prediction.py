@@ -1,51 +1,62 @@
-import joblib
 import pandas as pd
-import numpy as np
+import joblib
 
-# Carregar os modelos salvos
-rf_model = joblib.load('random_forest_model.pkl')
-pca_model = joblib.load('pca_model.pkl')
-scaler_model = joblib.load('scaler.pkl')
+# Carregar o pipeline treinado
+tmp = joblib.load('./best_rf_classifier_pipeline.pkl')
+# Se for Pipeline, extrai o modelo e os nomes de features esperados
+from sklearn.pipeline import Pipeline
+if isinstance(tmp, Pipeline):
+    model = tmp
+    # Escaler ou transformer pré-processamento deve expor feature_names_in_
+    try:
+        feature_names = model.named_steps['scaler'].feature_names_in_
+    except Exception:
+        # Tentativa alternativa: PCA não altera nomes; usa feature_names_in_ de first transformer
+        feature_names = model.named_steps['scaler'].get_feature_names_out()
+else:
+    model = tmp
+    feature_names = None
 
-def prever_ambulancias(ano, mes, dia_semana, hora_saida_num, minutos_saida, turno):
-    # Defina as colunas corretamente
-    colunas_treino = ['ANO', 'MES', 'DIA_SEMANA', 'HORA_SAIDA_NUM', 'MINUTOS_SAIDA', 'TURNO']  # Ajuste conforme necessário
+# Função para obter input do utilizador
+def obter_input_int(prompt):
+    while True:
+        try:
+            return int(input(prompt))
+        except ValueError:
+            print("Por favor, insere um número inteiro válido.")
 
-    # Criar o DataFrame com os dados fornecidos pelo utilizador
-    dados_entrada = pd.DataFrame({
-        'ANO': [ano],
-        'MES': [mes],
-        'DIA_SEMANA': [dia_semana],
-        'HORA_SAIDA_NUM': [hora_saida_num],
-        'MINUTOS_SAIDA': [minutos_saida],
-        'TURNO': [turno]
-    })
+# Solicitar ao utilizador os valores das variáveis
+print("Introduz os valores para prever o NUM_VEICULOS_CLUSTER:")
+ano = obter_input_int('Ano (ex: 2025): ')
+mes = obter_input_int('Mês (1-12): ')
+dia_semana = obter_input_int('Dia da semana (0=Segunda ... 6=Domingo): ')
+hora_saida = obter_input_int('Hora de saída (0-23): ')
+minutos_saida = obter_input_int('Minutos de saída (0-1439): ') 
+turno = input('Turno (ex: Manhã (1), Tarde (2), Noite (3)): ') # falta verificar o turno com os numeros
 
-    # Garantir que a ordem das colunas seja a mesma que no treinamento
-    dados_entrada = dados_entrada[colunas_treino]
+# Construir DataFrame inicial apenas com inputs brutos
+data = pd.DataFrame([{  
+    'ANO': ano,
+    'MES': mes,
+    'DIA_SEMANA': dia_semana,
+    'HORA_SAIDA_NUM': hora_saida,
+    'MINUTOS_SAIDA': minutos_saida,
+    'TURNO': turno
+}])
 
-    # Normalizar os dados de entrada com o scaler
-    dados_entrada_normalizados = scaler_model.transform(dados_entrada)
+# Se o pipeline espera colunas dummy de 'TURNO', precisamos de criar corretamente
+# Assumindo que o pipeline tem um OneHotEncoder/ColumnTransformer, basta passar data
 
-    # Aplicar PCA para reduzir a dimensionalidade
-    dados_entrada_pca = pca_model.transform(dados_entrada_normalizados)
+# Caso contrário, reindexa para as features esperadas, preenchendo faltantes com zero
+if feature_names is not None:
+    # Garante que todas as colunas existem
+    for col in feature_names:
+        if col not in data.columns:
+            data[col] = 0
+    # Reordena
+    data = data[feature_names]
 
-    # Fazer a previsão com o modelo Random Forest
-    previsao = rf_model.predict(dados_entrada_pca)
+# Prever
+y_pred = model.predict(data)
+print(f"Predição de NUM_VEICULOS_NECESSARIO: {y_pred[0]}")
 
-    # Exibir o resultado da previsão
-    return previsao[0]
-
-# Exemplo de como o utilizador pode introduzir os dados
-ano = int(input("Introduza o ano: "))
-mes = int(input("Introduza o mês: "))
-dia_semana = int(input("Introduza o dia da semana (1=Segunda, 7=Domingo): "))
-hora_saida_num = int(input("Introduza a hora de saída (em formato 24h): "))
-minutos_saida = int(input("Introduza os minutos da hora de saída: "))
-turno = int(input("Introduza o turno (1, 2, ou 3): "))
-
-# Chamar a função para fazer a previsão
-numero_ambulancias = prever_ambulancias(ano, mes, dia_semana, hora_saida_num, minutos_saida, turno)
-
-# Exibir o resultado
-print(f"A previsão do número de ambulâncias é: {numero_ambulancias}")

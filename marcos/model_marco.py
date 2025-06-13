@@ -1,79 +1,83 @@
-# Importação de bibliotecas necessáriasimport pandas as pd
-import numpy as np
-import matplotlib.pyplot as plt 
 import pandas as pd
-from sklearn.model_selection import train_test_split
-from sklearn.decomposition import PCA
-from sklearn.ensemble import RandomForestRegressor
+import numpy as np
+
+from sklearn.model_selection import train_test_split, GridSearchCV
 from sklearn.preprocessing import StandardScaler
-from sklearn.metrics import mean_absolute_error, mean_squared_error, r2_score
+from sklearn.decomposition import PCA
+from sklearn.ensemble import RandomForestClassifier
+from sklearn.pipeline import Pipeline
+from sklearn.metrics import (
+    accuracy_score, precision_score, recall_score,
+    f1_score, classification_report, confusion_matrix
+)
 import joblib
+from sklearn.model_selection import RandomizedSearchCV
 
+# 1. Carregar e limpar
+df = pd.read_csv('dataset_final.csv').dropna()
+df['NUM_VEICULOS_CLUSTER'] = df['NUM_VEICULOS_CLUSTER'].astype(int)
 
-# Carregar o dataset
-df = pd.read_csv('dataset.csv')
+# 2. Separar X e y
+X = df.drop(columns=['NUM_VEICULOS_CLUSTER'])
+y = df['NUM_VEICULOS_CLUSTER']
 
-# 1. Pré-processamento
-# Verificar valores nulos
-print(df.isnull().sum())  # Exibe o número de valores nulos em cada coluna
-df = df.dropna()  # Remover linhas com valores nulos, pode substituir por uma técnica de imputação se necessário
+# 3. Train/test split
+X_train, X_test, y_train, y_test = train_test_split(
+    X, y, test_size=0.3, random_state=42, stratify=y
+)
 
-# Selecionar as colunas numéricas e categóricas
-numerical_cols = df.select_dtypes(include=['float64', 'int64']).columns
+# 4. Pipeline de pré-processamento + classificador
+pipe = Pipeline([
+    ('scaler', StandardScaler()),
+    ('pca', PCA()),                   # vamos afinar n_components
+    ('clf', RandomForestClassifier(random_state=42, n_jobs=-1))
+])
 
-# 2. Codificação de variáveis categóricas (se houver)
-# Exemplo para uma variável categórica hipotética, se necessário
-# df = pd.get_dummies(df, columns=['RESERVA_DESCRICAO', 'PED_LOCAL'])
+# 5. Espaço de hiper-parâmetros
+param_grid = {
+    # PCA: sem PCA (None) ou vários números de componentes
+    'pca__n_components': [None, 5, 10, 15],
+    # Random Forest:
+    'clf__n_estimators': [100, 200, 500],
+    'clf__max_depth': [None, 5, 10, 20],
+    'clf__min_samples_split': [2, 5, 10],
+    'clf__min_samples_leaf': [1, 2, 4],
+    # Experimenta também balanceamento de classes
+    'clf__class_weight': [None, 'balanced']
+}
 
-# 3. Normalização dos dados
-scaler = StandardScaler()
-df[numerical_cols] = scaler.fit_transform(df[numerical_cols])
+# 6. GridSearchCV com scoring por F1 macro
+grid = RandomizedSearchCV(
+    estimator=pipe,
+    param_distributions=param_grid,
+    n_iter=100,           # testa só 100 combinações
+    cv=3,
+    scoring='f1_macro',
+    n_jobs=-1,
+    verbose=2,
+    random_state=42
+)
+grid.fit(X_train, y_train)
 
-# 4. Separar as features (X) e o alvo (y)
-X = df.drop(columns=['PED_NUM_VEICULOS'])  # Remover a variável alvo
-y = df['PED_NUM_VEICULOS']  # Variável alvo
+print("→ Melhores parâmetros:", grid.best_params_)
+print("→ Melhor F1_macro em CV:", grid.best_score_)
 
-# 5. Dividir os dados em treino e teste
-X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.2, random_state=42)
+# 7. Avaliação no conjunto de teste
+best_model = grid.best_estimator_
+y_pred = best_model.predict(X_test)
 
-# 6. Aplicar PCA para redução de dimensionalidade
-pca = PCA(n_components=5)  # Vamos reduzir para 5 componentes principais (ajuste conforme necessário)
-X_train_pca = pca.fit_transform(X_train)
-X_test_pca = pca.transform(X_test)
+print("\n=== Métricas no Teste ===")
+print(f"Acurácia:       {accuracy_score(y_test, y_pred):.4f}")
+print(f"Precision (macro): {precision_score(y_test, y_pred, average='macro'):.4f}")
+print(f"Recall (macro):    {recall_score(y_test, y_pred, average='macro'):.4f}")
+print(f"F1 (macro):        {f1_score(y_test, y_pred, average='macro'):.4f}")
 
-# 7. Treinamento do modelo Random Forest
-rf = RandomForestRegressor(n_estimators=100, random_state=42)
-rf.fit(X_train_pca, y_train)
+print("\nClassification Report:")
+print(classification_report(y_test, y_pred))
 
-# 8. Previsão e avaliação do modelo
-y_pred = rf.predict(X_test_pca)
+print("Matriz de Confusão:")
+print(confusion_matrix(y_test, y_pred))
 
-# Avaliação do desempenho
-mae = mean_absolute_error(y_test, y_pred)
-mse = mean_squared_error(y_test, y_pred)
-rmse = np.sqrt(mse)  # Calcular o RMSE manualmente
-r2 = r2_score(y_test, y_pred)
-
-print(f"MAE: {mae}")
-print(f"MSE: {mse}")
-print(f"RMSE: {rmse}")
-print(f"R2: {r2}")
-
-# 9. Importância das variáveis no modelo Random Forest
-importances = rf.feature_importances_
-indices = np.argsort(importances)[::-1]
-
-plt.figure(figsize=(10, 6))
-plt.title("Importância das Variáveis")
-plt.bar(range(X_train_pca.shape[1]), importances[indices], align="center")
-plt.xticks(range(X_train_pca.shape[1]), indices)
-plt.xlabel("Componente Principal")
-plt.ylabel("Importância")
-plt.show()
-
-# 10. Salvamento do modelo e do PCA
-joblib.dump(rf, 'random_forest_model.pkl')
-joblib.dump(pca, 'pca_model.pkl')
-joblib.dump(scaler, 'scaler.pkl')
-
-print("Modelos salvos com sucesso!")
+# 8. Guardar modelo completo
+joblib.dump(best_model, 'best_rf_classifier_pipeline.pkl')
+print("\nModelo guardado em 'best_rf_classifier_pipeline.pkl'")

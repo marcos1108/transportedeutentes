@@ -29,8 +29,8 @@ Os clusters foram criados usando o k-means criado anteriormente
 
 criado modelo classiificador (pipeline) e treinado (método fit) que faz predição da necessidade de viaturas.
 
-O modelo criado é um modelos ajustado dataset entregue, outro dataset outro contexto produzir o mesmo modelos
-metodologico mas com comportamento de predição diferente 
+O modelo criado é um modelo ao ajustado dataset entregue. Outro dataset, cria outro contexto, e embora o modelos 
+produzido  metodologico seja o mesmo, como está treinado com outro dataset o seu comportamento de predição é diferente 
 
 Modelo=
 *best_rf_classifier_pipeline.pkl*

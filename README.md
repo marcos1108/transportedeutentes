@@ -1,53 +1,70 @@
-# Projeto de Análise de Transportes com K-Means
+# Previsão de Necessidade de Ambulâncias - Bombeiros
 
-Este projeto utiliza técnicas de aprendizagem não supervisionada (K-Means) e engenharia de variáveis para analisar padrões em dados de transporte de utentes. A aplicação final permite prever a qual cluster um novo transporte pertence.
+Este projeto foi desenvolvido para prever a quantidade necessária de viaturas de transporte de doentes com base em dados históricos de transporte, utilizando **Machine Learning supervisionado com Random Forest**.
 
----
-
-## 📁 Estrutura
-
-- `Dados_Preprocessados_Codificados.csv`: dados originais codificados
-- `Dados_Com_Variaveis_Derivadas.csv`: dados com novas variáveis por dia
-- `modelo_kmeans.pkl`: modelo K-Means final com k=6
-- `normalizador.pkl`: scaler usado na normalização
-- `mapeamento_legivel.json`: tradução dos valores numéricos
-- `Kmeans Streamlit App.py`: aplicação web interativa
-- `treinar_modelo_final.py`: script que treina o modelo e normaliza os dados
-- `gerar_clusters.py`: gera clusters exploratórios de k=4 a k=10
-- `veiculos_por_dia_e_correlacao.py`: cria variáveis por dia e gera matriz de correlação
-- `correlacoes_derivadas_completas.csv`: matriz de correlação entre todas as variáveis
+O projeto envolve:
+- Pré-processamento de dados históricos dos bombeiros (2005 a 2024);
+- Treinamento de um modelo Random Forest com redução de dimensionalidade (PCA);
+- Desenvolvimento de uma interface interativa via Streamlit;
+- Sistema de previsão operacional diária de transporte.
 
 ---
 
-## 🧪 Como executar
+## 📂 Estrutura do Projeto
 
-### Instale as dependências:
+```
+.
+├── Dados/
+│   ├── dataset.csv
+│   ├── dataset_final.csv
+├── best_rf_classifier_pipeline.pkl  (modelo final treinado)
+├── prediction_funcional.py          (código de predição encapsulado como função)
+├── app_streamlit_rf_v3.py           (aplicação final em Streamlit)
+├── requirements.txt                 (dependências)
+└── README.md
+```
+
+---
+
+## 🚀 Como executar o projeto
+
+### 1️⃣ Clonar o repositório
+
+```bash
+git clone https://github.com/seu-usuario/seu-repo.git
+cd seu-repo
+```
+
+### 2️⃣ Instalar as dependências
+
+Recomenda-se usar um ambiente virtual.
+
 ```bash
 pip install -r requirements.txt
 ```
 
-### Para treinar o modelo:
+### 3️⃣ Executar a aplicação Streamlit
+
 ```bash
-python treinar_modelo_final.py
+streamlit run app_streamlit_rf_v3.py
 ```
 
-### Para gerar clusters exploratórios:
-```bash
-python gerar_clusters.py
-```
-
-### Para gerar variáveis derivadas e correlação:
-```bash
-python veiculos_por_dia_e_correlacao.py
-```
-
-### Para rodar a aplicação web:
-```bash
-streamlit run Kmeans Streamlit App.py
-```
+A aplicação abrirá no navegador, permitindo ao utilizador introduzir a data e hora da ocorrência e obter a previsão de viaturas necessárias.
 
 ---
 
-## 👤 Autor
-Marcos Ramos  
-Projeto acadêmico no âmbito do curso de Análise de Dados – IPG
+## 🧠 Descrição técnica do modelo
+
+- Algoritmo: Random Forest Classifier
+- Redução de dimensionalidade: PCA (Análise de Componentes Principais)
+- Pré-processamento: StandardScaler embutido no pipeline
+- Entrada do modelo:
+  - ANO, MES, DIA_SEMANA, HORA_SAIDA_NUM, MINUTOS_SAIDA, TURNO
+  - Outras variáveis do histórico codificadas internamente (preenchidas como 0 na predição)
+
+---
+
+## 📊 Objetivo final
+
+Auxiliar o corpo de bombeiros na previsão da quantidade de ambulâncias necessárias com base no perfil de demanda esperado, oferecendo uma ferramenta prática de apoio à tomada de decisão operacional.
+

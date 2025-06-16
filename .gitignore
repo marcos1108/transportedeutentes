@@ -3,6 +3,7 @@
 *.gdoc
 *.gsheet~
 *.gslides
+*.ini
 
 # Ignorar arquivos e pastas do PyCharm/IntelliJ
 .idea/
